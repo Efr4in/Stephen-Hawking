@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Texto a Voz con Cara Animada</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f9f9f9;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    input {
+      padding: 10px;
+      width: 300px;
+      font-size: 16px;
+      margin-bottom: 20px;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+
+    input:focus {
+      border-color: #007BFF;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .face-container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .face {
+      width: 150px;
+      height: 150px;
+      background-color: #FFD700;
+      border-radius: 50%;
+      position: relative;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .eye {
+      width: 20px;
+      height: 20px;
+      background-color: black;
+      border-radius: 50%;
+      position: absolute;
+      top: 40px;
+    }
+
+    .eye.left {
+      left: 40px;
+    }
+
+    .eye.right {
+      right: 40px;
+    }
+
+    .mouth {
+      width: 80px;
+      height: 20px;
+      background-color: #D33;
+      border-radius: 10px;
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      animation: mouthClosed 1s infinite;
+    }
+
+    /* Animación para mover la boca */
+    @keyframes mouthOpen {
+      0% {
+        height: 20px;
+      }
+      50% {
+        height: 30px;
+      }
+      100% {
+        height: 20px;
+      }
+    }
+
+    @keyframes mouthClosed {
+      0% {
+        height: 20px;
+      }
+      100% {
+        height: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Texto a Voz con Animación Facial</h1>
+  <div class="face-container">
+    <div class="face">
+      <div class="eye left"></div>
+      <div class="eye right"></div>
+      <div class="mouth"></div>
+    </div>
+  </div>
+  <input type="text" id="text-input" placeholder="Escribe algo aquí..." />
+  <button id="play-button" disabled>Reproducir Todo</button>
+
+  <script>
+    const input = document.getElementById("text-input");
+    const playButton = document.getElementById("play-button");
+    const mouth = document.querySelector(".mouth");
+
+    // Validar si SpeechSynthesis está disponible
+    if (!("speechSynthesis" in window)) {
+      alert("Lo siento, tu navegador no soporta la síntesis de voz.");
+    }
+
+    let lastSpokenWord = ''; // Para rastrear la última palabra hablada
+
+    // Función para reproducir solo la palabra completa
+    function speakWord(word) {
+      // Crear la palabra a ser hablada
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = "es-ES"; // Configurar idioma
+      utterance.rate = 1; // Velocidad normal
+      utterance.pitch = 1; // Tono normal
+      utterance.volume = 1; // Volumen normal
+
+      // Reproducir la palabra inmediatamente
+      speechSynthesis.speak(utterance);
+
+      // Iniciar la animación de la boca al hablar
+      mouth.style.animation = "mouthOpen 0.5s ease-out";
+
+      // Volver a cerrar la boca después de que termine de hablar
+      utterance.onend = function() {
+        mouth.style.animation = "mouthClosed 1s ease-out";
+      };
+    }
+
+    // Detecta cuando el usuario presiona la barra espaciadora o Enter para leer la última palabra
+    input.addEventListener("keydown", (event) => {
+      if (event.key === " " || event.key === "Enter") {
+        const currentText = input.value.trim(); // Obtén el texto completo
+        const words = currentText.split(" "); // Divide el texto en palabras
+        const lastWord = words[words.length - 1]; // Obtiene la última palabra
+
+        if (lastWord !== lastSpokenWord) {
+          speakWord(lastWord); // Reproduce solo la última palabra completa
+          lastSpokenWord = lastWord; // Actualiza la última palabra hablada
+        }
+      }
+    });
+
+    // Reproducir todo el texto al hacer clic en el botón
+    playButton.addEventListener("click", () => {
+      const text = input.value.trim();
+      if (text) {
+        const words = text.split(" ");
+        words.forEach(word => {
+          speakWord(word); // Reproduce cada palabra de manera continua
+        });
+      }
+    });
+  </script>
+</body>
+</html>
